@@ -4,21 +4,11 @@
 #include "DTrainingMode.h"
 #include "DivineSummit/Components/DHealthComponent.h"
 #include "Kismet/GameplayStatics.h"
-void ADTrainingMode::RestartDeadPlayers()
-{
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	{
-		APlayerController* PC = It->Get();
-		if (PC && PC->GetPawn() == nullptr)
-		{
-			RestartPlayer(PC);
-		}
-	}
-}
+
 
 void ADTrainingMode::GameOver()
 {
-	UE_LOG(LogTemp, Log, TEXT("GAME OVER! Players Died"));
+
 	UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
 	//RestartDeadPlayers();
 }
@@ -31,21 +21,25 @@ ADTrainingMode::ADTrainingMode()
 
 void ADTrainingMode::CheckAnyPlayerAlive()
 {
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+
+	for (FConstPawnIterator It = GetWorld()->GetPawnIterator(); It; ++It)
 	{
-		APlayerController* PC = It->Get();
-		if (PC && PC->GetPawn())
+		APawn* TestPawn = It->Get();
+
+		if (TestPawn == nullptr || TestPawn->IsPlayerControlled())
 		{
-			APawn* MyPawn = PC->GetPawn();
-			UDHealthComponent* HealthComp = Cast<UDHealthComponent>(MyPawn->GetComponentByClass(UDHealthComponent::StaticClass()));
-			if (ensure(HealthComp) && HealthComp->GetHealth() > 0.0f)
-			{
-				// A player is still alive.
-				return;
-			}
+			continue;
+		}
+
+		UDHealthComponent* HealthComp = Cast<UDHealthComponent>(TestPawn->GetComponentByClass(UDHealthComponent::StaticClass()));
+		if (HealthComp && HealthComp->GetHealth() == 0.0f)
+		{
+			UE_LOG(LogTemp, Log, TEXT("GAME OVER! %s Died"), *(HealthComp->GetOwner()->GetName()));
+			GameOver();
 		}
 	}
-	GameOver();
+
+		
 }
 
 void ADTrainingMode::StartPlay()
@@ -58,3 +52,28 @@ void ADTrainingMode::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	CheckAnyPlayerAlive();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//void ADTrainingMode::RestartDeadPlayers()
+//{
+//	for (auto It = GetWorld()->GetControllerIterator(); It; ++It)
+//	{
+//		AController* PC = It->Get();
+//		if (PC && PC->GetPawn() == nullptr)
+//		{
+//			RestartPlayer(PC);
+//		}
+//	}
+//}

@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AIController.h"
+#include "DivineSummit/Controllers/DBaseAIController.h"
+#include <vector>
 #include "DGodAIController.generated.h"
 
 /**
@@ -11,30 +12,47 @@
  */
 
 class ADHeroCharacter;
+class ADPlant;
 
 UCLASS()
-class DIVINESUMMIT_API ADGodAIController : public AAIController
+class DIVINESUMMIT_API ADGodAIController : public ADBaseAIController
 {
 	GENERATED_BODY()
 	
 
 private:
 
-	ADHeroCharacter* PlayerPawn;
-
-	FTimerHandle TimerHandle_MoveTimer;
 
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float MovementRate = 3;
+	bool PlayerInRange();
+
+	FTimerHandle TimerHandle_PlantTimer;
+
 
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(EditAnywhere, Category = "Spawn")
+	TSubclassOf<ADPlant> PlantClass;
 
+	UPROPERTY(EditAnywhere, Category = "Spawn")
+	float PlantSpawnRate = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	float PlayerDetectBound = 1000;
+
+
+
+	ADPlant* PlantInstance;
+
+
+public:
 	void MoveGod();
+
+	void MoveToPlayer(int acceptance_radius);
+
+	void SpawnPlantAtLocation();
+
 };

@@ -8,7 +8,9 @@
 #include "DivineSummit/DivineSummit.h"
 #include "DivineSummit/Components/DHealthComponent.h"
 #include "Net/UnrealNetwork.h"
-
+#include "DivineSummit/GameModes/DTrainingMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "DivineSummit/Actors/DWeapon.h"
 
 
 // Sets default values
@@ -24,10 +26,12 @@ ADHeroCharacter::ADHeroCharacter()
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 
 	HealthComp = CreateDefaultSubobject<UDHealthComponent>(TEXT("HealthComp"));
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
 
+	WeaponAttachSocketName = "WeaponSocket";
 	
 }
 
@@ -36,8 +40,19 @@ void ADHeroCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	
 	HealthComp->OnHealthChanged.AddDynamic(this, &ADHeroCharacter::OnHealthChanged);
 
+	// Spawn a default weapon
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	CurrentWeapon = GetWorld()->SpawnActor<ADWeapon>(StarterWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SetOwner(this);
+		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+	}
 }
 
 
@@ -69,11 +84,12 @@ void ADHeroCharacter::EndCrouch()
 void ADHeroCharacter::OnHealthChanged(UDHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType,
 	class AController* InstigatedBy, AActor* DamageCauser)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("Hero Health Dropped"));
 	if (Health <= 0.0f && !bDied)
 	{
 		// Die!
 		bDied = true;
-
 		GetMovementComponent()->StopMovementImmediately();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -89,7 +105,7 @@ void ADHeroCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
+	//UE_LOG(LogTemp, Log, TEXT("%s: Health Changed: %s"), *(GetName()), *FString::SanitizeFloat(HealthComp->GetHealth()));
 }
 
 // Called to bind functionality to input
@@ -106,6 +122,9 @@ void ADHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ADHeroCharacter::BeginCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ADHeroCharacter::EndCrouch);
 
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ADHeroCharacter::StartFire);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ADHeroCharacter::StopFire);
+
 	// CHALLENGE CODE
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 }
@@ -119,6 +138,29 @@ FVector ADHeroCharacter::GetPawnViewLocation() const
 	}
 
 	return Super::GetPawnViewLocation();
+}
+
+void ADHeroCharacter::StartFire()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StartFire();
+	}
+
+}
+
+void ADHeroCharacter::StopFire()
+{
+	if(CurrentWeapon)
+		CurrentWeapon->StopFire();
+}
+
+void ADHeroCharacter::Fire()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->Fire();
+	}
 }
 
 

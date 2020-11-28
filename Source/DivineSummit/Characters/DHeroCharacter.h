@@ -10,7 +10,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class UDHealthComponent;
-
+class ADWeapon;
 UCLASS()
 class DIVINESUMMIT_API ADHeroCharacter : public ACharacter
 {
@@ -33,13 +33,13 @@ protected:
 	void EndCrouch();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UCameraComponent* CameraComp;
+	UCameraComponent* CameraComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		USpringArmComponent* SpringArmComp;
+	USpringArmComponent* SpringArmComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UDHealthComponent* HealthComp;
+	UDHealthComponent* HealthComp;
 
 	UFUNCTION()
 	void OnHealthChanged(UDHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
@@ -47,6 +47,15 @@ protected:
 	/* Pawn died previously */
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
 	bool bDied;
+
+
+	ADWeapon* CurrentWeapon;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	TSubclassOf<ADWeapon> StarterWeaponClass;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
+	FName WeaponAttachSocketName;
 
 public:	
 	// Called every frame
@@ -56,5 +65,13 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual FVector GetPawnViewLocation() const override;
+
+	UFUNCTION(BlueprintCallable, Category = "Player")
+	void StartFire();
+
+	UFUNCTION(BlueprintCallable, Category = "Player")
+	void StopFire();
+
+	void Fire();
 
 };

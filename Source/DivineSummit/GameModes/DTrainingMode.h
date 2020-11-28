@@ -9,6 +9,13 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnActorKilled, AActor*, VictimActor, AActor*, KillerActor, AController*, KillerController);
 
+
+struct GameState
+{
+	float gameReset;
+	float GodHealth, GodX, GodZ, GodPitch, GodSpawnedPlant, SpawnX, SpawnZ, HeroInPlant;
+	float HeroHealth, HeroX, HeroZ, HeroPitch, HeroShot, BulletHitGod;
+};
 /**
  * 
  */
@@ -20,9 +27,12 @@ class DIVINESUMMIT_API ADTrainingMode : public AGameModeBase
 protected:
 	void CheckAnyPlayerAlive();
 
-	void RestartDeadPlayers();
+	//void RestartDeadPlayers();
 
 	void GameOver();
+
+
+
 
 public:
 	ADTrainingMode();
@@ -33,5 +43,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "GameMode")
 	FOnActorKilled OnActorKilled;
+
 	
+	// Health
+	bool PlayerDead{ false };
+	bool GodDead{ false };
 };
