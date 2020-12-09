@@ -69,6 +69,7 @@ void UDHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, 
 
 	OnHealthChanged.Broadcast(this, Health, Damage, DamageType, InstigatedBy, DamageCauser);
 
+
 }
 
 float UDHealthComponent::GetHealth() const
